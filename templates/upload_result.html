@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGLab — Document Processed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">RAGLab</div>
+            <p class="tagline">Document Processing</p>
+        </header>
+
+        {% if result.success %}
+        <div class="result-banner success-banner">
+            <div class="result-icon">✓</div>
+            <div class="result-info">
+                <div class="result-title">Document indexed successfully</div>
+                <div class="result-filename">{{ result.filename }}</div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ result.pages }}</div>
+                <div class="stat-label">Pages extracted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ result.chunks }}</div>
+                <div class="stat-label">Chunks created</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~500</div>
+                <div class="stat-label">Words per chunk</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">What happened</div>
+            <div class="pipeline-steps">
+                <div class="pipeline-step done">
+                    <span class="step-icon">✓</span>
+                    <span>PDF text extracted from {{ result.pages }} pages</span>
+                </div>
+                <div class="pipeline-step done">
+                    <span class="step-icon">✓</span>
+                    <span>Text split into {{ result.chunks }} overlapping chunks (~500 words each)</span>
+                </div>
+                <div class="pipeline-step done">
+                    <span class="step-icon">✓</span>
+                    <span>Each chunk converted to a vector embedding</span>
+                </div>
+                <div class="pipeline-step done">
+                    <span class="step-icon">✓</span>
+                    <span>Vectors stored in ChromaDB for semantic search</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions-row">
+            <a href="/ask/{{ result.collection_name }}" class="btn-primary">Ask questions →</a>
+            <a href="/" class="btn-secondary">Upload another</a>
+        </div>
+
+        {% else %}
+        <div class="result-banner error-banner">
+            <div class="result-icon">✗</div>
+            <div class="result-info">
+                <div class="result-title">Processing failed</div>
+                <div class="result-filename">{{ result.error }}</div>
+            </div>
+        </div>
+        <div class="actions-row">
+            <a href="/" class="btn-primary">Try again →</a>
+        </div>
+        {% endif %}
+
+        <footer>
+            <p>⚠ RAGLab answers questions based solely on the content of uploaded documents.</p>
+        </footer>
+    </div>
+</body>
+</html>

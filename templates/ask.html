@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGLab — {{ current_doc.filename }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">RAGLab</div>
+            <p class="tagline">Document Q&A</p>
+        </header>
+
+        <!-- Document info bar -->
+        <div class="doc-bar">
+            <div class="doc-bar-left">
+                <span class="doc-bar-icon">📄</span>
+                <span class="doc-bar-name">{{ current_doc.filename }}</span>
+                <span class="doc-bar-chunks">{{ current_doc.chunks }} chunks</span>
+            </div>
+            <a href="/" class="doc-bar-link">← All documents</a>
+        </div>
+
+        <!-- Question form -->
+        <form method="POST">
+            <div class="question-row">
+                <input
+                    type="text"
+                    name="question"
+                    class="question-input"
+                    placeholder="Ask a question about this document..."
+                    value="{{ question }}"
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" class="btn-primary">Ask →</button>
+            </div>
+        </form>
+
+        {% if result %}
+        <!-- Answer -->
+        <div class="answer-card {% if not result.found_in_document %}not-found{% endif %}">
+            <div class="answer-header">
+                <div class="answer-label">Answer</div>
+                <div class="answer-meta">
+                    <span class="confidence-badge conf-{{ result.confidence }}">{{ result.confidence }} confidence</span>
+                    <span class="chunks-badge">{{ result.chunks_searched }} chunks searched</span>
+                    {% if not result.found_in_document %}
+                    <span class="not-found-badge">Not found in document</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="answer-text">{{ result.answer }}</div>
+        </div>
+
+        <!-- Citations -->
+        {% if result.citations %}
+        <div class="card">
+            <div class="card-title">Sources cited ({{ result.citations | length }})</div>
+            {% for citation in result.citations %}
+            <div class="citation-row">
+                <div class="citation-header">
+                    <span class="citation-num">[Source {{ citation.source_num }}]</span>
+                    <span class="citation-page">Page {{ citation.page }}</span>
+                    {% if citation.relevance %}
+                    <span class="citation-relevance">{{ citation.relevance }}% match</span>
+                    {% endif %}
+                </div>
+                <div class="citation-text">{{ citation.text }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Retrieved chunks (expandable) -->
+        {% if result.retrieved_chunks %}
+        <div class="card">
+            <div class="card-title" style="cursor:pointer" onclick="toggleChunks()">
+                Retrieved chunks ({{ result.retrieved_chunks | length }}) <span id="chunks-toggle">▾ show</span>
+            </div>
+            <div id="chunks-list" style="display:none">
+                {% for chunk in result.retrieved_chunks %}
+                <div class="chunk-row">
+                    <div class="chunk-header">
+                        <span class="chunk-page">Page {{ chunk.page }}</span>
+                        {% if chunk.relevance %}
+                        <span class="chunk-relevance">{{ chunk.relevance }}% relevance</span>
+                        {% endif %}
+                    </div>
+                    <div class="chunk-text">{{ chunk.text[:400] }}{% if chunk.text | length > 400 %}...{% endif %}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% endif %}
+
+        <footer>
+            <p>⚠ RAGLab answers are grounded in the uploaded document only. Always verify against original sources.</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleChunks() {
+            const list = document.getElementById('chunks-list');
+            const toggle = document.getElementById('chunks-toggle');
+            if (list.style.display === 'none') {
+                list.style.display = 'block';
+                toggle.textContent = '▴ hide';
+            } else {
+                list.style.display = 'none';
+                toggle.textContent = '▾ show';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGLab — Document Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">RAGLab</div>
+            <p class="tagline">Upload a document. Ask questions. Get cited answers.</p>
+        </header>
+
+        <!-- Upload -->
+        <div class="card upload-card">
+            <div class="card-title">Upload Document</div>
+            <form method="POST" action="/upload" enctype="multipart/form-data">
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" name="file" id="fileInput" accept=".pdf" required style="display:none">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Drop a PDF here or <span class="upload-link" onclick="document.getElementById('fileInput').click()">browse</span></div>
+                    <div class="upload-sub">PDF files only · Max 16MB</div>
+                    <div class="upload-filename" id="uploadFilename"></div>
+                </div>
+                <button type="submit" class="btn-primary" id="uploadBtn">Upload & Process →</button>
+            </form>
+        </div>
+
+        <!-- Document library -->
+        <div class="section-title">Document Library ({{ documents | length }})</div>
+
+        {% if documents %}
+        <div class="doc-grid">
+            {% for doc in documents %}
+            <div class="doc-card">
+                <div class="doc-icon">📄</div>
+                <div class="doc-info">
+                    <div class="doc-name">{{ doc.filename }}</div>
+                    <div class="doc-meta">{{ doc.chunks }} chunks indexed</div>
+                </div>
+                <div class="doc-actions">
+                    <a href="/ask/{{ doc.collection_name }}" class="btn-ask">Ask →</a>
+                    <form method="POST" action="/delete/{{ doc.collection_name }}" style="display:inline" onsubmit="return confirm('Delete this document?')">
+                        <button type="submit" class="btn-delete">✕</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No documents uploaded yet. Upload a PDF to get started.</p>
+        </div>
+        {% endif %}
+
+        <footer>
+            <p>⚠ RAGLab answers questions based solely on the content of uploaded documents. Always verify important information against original sources.</p>
+        </footer>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadFilename = document.getElementById('uploadFilename');
+        const uploadArea = document.getElementById('uploadArea');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                uploadFilename.textContent = this.files[0].name;
+                uploadFilename.style.display = 'block';
+            }
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files[0] && files[0].name.endsWith('.pdf')) {
+                fileInput.files = files;
+                uploadFilename.textContent = files[0].name;
+                uploadFilename.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
